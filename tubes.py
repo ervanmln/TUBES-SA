@@ -1,15 +1,17 @@
 import time
 from itertools import combinations
 
+# Algoritma Brute Force
 def brute_force(books, max_time, max_books):
-    max_time_minutes = max_time * 60
+    max_time_minutes = max_time * 60  # Konversi jam ke menit
     best_combination = []
     best_score = 0
     
+    # Coba semua kombinasi buku yang mungkin
     for r in range(1, max_books + 1):
         for combo in combinations(books, r):
-            total_time = sum(book[1] for book in combo) * 5
-            total_rating = sum(book[2] for book in combo)
+            total_time = sum(book[1] for book in combo) * 5  # Total waktu dalam menit
+            total_rating = sum(book[2] for book in combo)  # Total rating
             
             if total_time <= max_time_minutes and total_rating > best_score:
                 best_combination = combo
@@ -17,21 +19,23 @@ def brute_force(books, max_time, max_books):
                 
     return best_combination, sum(book[1] for book in best_combination) * 5
 
+# Algoritma Greedy
 def greedy(books, max_time, max_books):
-    max_time_minutes = max_time * 60
-    books_sorted = sorted(books, key=lambda x: x[2]/x[1], reverse=True)
+    max_time_minutes = max_time * 60  # Konversi jam ke menit
+    books_sorted = sorted(books, key=lambda x: x[2]/x[1], reverse=True)  # Urutkan buku berdasarkan rasio rating/durasi
     selected_books = []
     total_time = 0
     
     for book in books_sorted:
         if len(selected_books) < max_books:
-            book_time = book[1] * 5
+            book_time = book[1] * 5  # Waktu yang dibutuhkan untuk membaca buku
             if total_time + book_time <= max_time_minutes:
                 selected_books.append(book)
                 total_time += book_time
     
     return selected_books, total_time
 
+# Format waktu dalam menit menjadi jam dan menit
 def format_time(minutes):
     if minutes < 60:
         return f"{minutes} menit"
@@ -40,6 +44,7 @@ def format_time(minutes):
         remaining_minutes = minutes % 60
         return f"{hours} jam {remaining_minutes} menit"
 
+# Masukan manual
 def get_input():
     while True:
         max_time_input = input("Masukkan jumlah waktu yang dimiliki pustakawan (dalam jam): ")
@@ -102,28 +107,32 @@ def get_input():
     
     return max_time, max_books, books
 
+# Fungsi Utama
 def main():
     max_time, max_books, books = get_input()
 
+    # Ukur waktu eksekusi untuk Brute Force
     start_time = time.time()
     best_books_bruteforce, brute_force_time_needed = brute_force(books, max_time, max_books)
     bruteforce_time = time.time() - start_time
 
+    # Ukur waktu eksekusi untuk Greedy
     start_time = time.time()
     best_books_greedy, greedy_time_needed = greedy(books, max_time, max_books)
     greedy_time = time.time() - start_time
 
+    # Output hasil
     print("\nMenggunakan Brute Force:")
     for i, book in enumerate(best_books_bruteforce):
         print(f"{i+1}. {book[0]} dengan durasi {book[1] * 5} menit dan rating {book[2]}")
     print("Total durasi waktu (Brute Force):", format_time(brute_force_time_needed))
-    print("Execution time (Brute Force):", bruteforce_time, "seconds")
+    print("Waktu eksekusi (Brute Force):", bruteforce_time, "detik")
 
     print("\nMenggunakan Greedy:")
     for i, book in enumerate(best_books_greedy):
         print(f"{i+1}. {book[0]} dengan durasi {book[1] * 5} menit dan rating {book[2]}")
     print("Total durasi waktu (Greedy):", format_time(greedy_time_needed))
-    print("Execution time (Greedy):", greedy_time, "seconds")
+    print("Waktu eksekusi (Greedy):", greedy_time, "detik")
 
 if __name__ == "__main__":
     main()
