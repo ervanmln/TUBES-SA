@@ -1,17 +1,15 @@
 import time
 from itertools import combinations
 
-# Brute Force algorithm
 def brute_force(books, max_time, max_books):
-    max_time_minutes = max_time * 60  # Convert hours to minutes
+    max_time_minutes = max_time * 60
     best_combination = []
     best_score = 0
     
-    # Try all possible combinations of books
     for r in range(1, max_books + 1):
         for combo in combinations(books, r):
-            total_time = sum(book[1] for book in combo) * 5  # Total time in minutes
-            total_rating = sum(book[2] for book in combo)  # Total rating
+            total_time = sum(book[1] for book in combo) * 5
+            total_rating = sum(book[2] for book in combo)
             
             if total_time <= max_time_minutes and total_rating > best_score:
                 best_combination = combo
@@ -19,23 +17,21 @@ def brute_force(books, max_time, max_books):
                 
     return best_combination, sum(book[1] for book in best_combination) * 5
 
-# Greedy algorithm
 def greedy(books, max_time, max_books):
-    max_time_minutes = max_time * 60  # Convert hours to minutes
-    books_sorted = sorted(books, key=lambda x: x[2]/x[1], reverse=True)  # Sort books by rating/duration ratio
+    max_time_minutes = max_time * 60
+    books_sorted = sorted(books, key=lambda x: x[2]/x[1], reverse=True)
     selected_books = []
     total_time = 0
     
     for book in books_sorted:
         if len(selected_books) < max_books:
-            book_time = book[1] * 5  # Time needed to read the book
+            book_time = book[1] * 5
             if total_time + book_time <= max_time_minutes:
                 selected_books.append(book)
                 total_time += book_time
     
     return selected_books, total_time
 
-# Format time in minutes to hours and minutes
 def format_time(minutes):
     if minutes < 60:
         return f"{minutes} menit"
@@ -44,7 +40,6 @@ def format_time(minutes):
         remaining_minutes = minutes % 60
         return f"{hours} jam {remaining_minutes} menit"
 
-# Manual input
 def get_input():
     while True:
         max_time_input = input("Masukkan jumlah waktu yang dimiliki pustakawan (dalam jam): ")
@@ -94,34 +89,30 @@ def get_input():
                 print("Masukkan bilangan bulat yang valid.")
         
         while True:
-            book_rating_input = input(f"Rating buku {book_name} (1-9): ")
+            book_rating_input = input(f"Rating buku {book_name} (1-10): ")
             try:
                 book_rating = int(book_rating_input)
-                if 1 <= book_rating <= 9:
+                if 1 <= book_rating <= 10:
                     books.append((book_name, book_pages, book_rating))
                     break
                 else:
-                    print("Masukkan rating buku yang valid (1-9).")
+                    print("Masukkan rating buku yang valid (1-10).")
             except ValueError:
                 print("Masukkan bilangan bulat yang valid.")
     
     return max_time, max_books, books
 
-# Main function
 def main():
     max_time, max_books, books = get_input()
 
-    # Measure execution time for Brute Force
     start_time = time.time()
     best_books_bruteforce, brute_force_time_needed = brute_force(books, max_time, max_books)
     bruteforce_time = time.time() - start_time
 
-    # Measure execution time for Greedy
     start_time = time.time()
     best_books_greedy, greedy_time_needed = greedy(books, max_time, max_books)
     greedy_time = time.time() - start_time
 
-    # Output results
     print("\nMenggunakan Brute Force:")
     for i, book in enumerate(best_books_bruteforce):
         print(f"{i+1}. {book[0]} dengan durasi {book[1] * 5} menit dan rating {book[2]}")
