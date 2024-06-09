@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Book Selection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            background: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #ff6f61;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 15px 0 5px;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 5px 0 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff3f30;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .results h3 {
+            color: #ff6f61;
+        }
+        .book-input {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+        }
+    </style>
+    <script>
+        function bruteForce(books, maxTime, maxBooks) {
+            const maxTimeMinutes = maxTime * 60;
+            let bestCombination = [];
+            let bestScore = 0;
+
+            function combinations(arr, k) {
+                if (k > arr.length || k <= 0) {
+                    return [];
+                }
+                if (k === arr.length) {
+                    return [arr];
+                }
+                if (k === 1) {
+                    return arr.map(el => [el]);
+                }
+                let combs = [];
+                for (let i = 0; i <= arr.length - k; i++) {
+                    let head = arr.slice(i, i + 1);
+                    let tailcombs = combinations(arr.slice(i + 1), k - 1);
+                    for (let tailcomb of tailcombs) {
+                        combs.push(head.concat(tailcomb));
+                    }
+                }
+                return combs;
+            }
+
+            for (let r = 1; r <= maxBooks; r++) {
+                let combs = combinations(books, r);
+                for (let combo of combs) {
+                    let totalTime = combo.reduce((acc, book) => acc + book[1], 0) * 5;
+                    let totalRating = combo.reduce((acc, book) => acc + book[2], 0);
+
+                    if (totalTime <= maxTimeMinutes && totalRating > bestScore) {
+                        bestCombination = combo;
+                        bestScore = totalRating;
+                    }
+                }
+            }
+
+            return [bestCombination, bestCombination.reduce((acc, book) => acc + book[1], 0) * 5];
+        }
+
+        function greedy(books, maxTime, maxBooks) {
+            const maxTimeMinutes = maxTime * 60;
+            let booksSorted = books.sort((a, b) => (b[2] / b[1]) - (a[2] / a[1]));
+            let selectedBooks = [];
+            let totalTime = 0;
+
+            for (let book of booksSorted) {
+                if (selectedBooks.length < maxBooks) {
+                    let bookTime = book[1] * 5;
+                    if (totalTime + bookTime <= maxTimeMinutes) {
+                        selectedBooks.push(book);
+                        totalTime += bookTime;
+                    }
+                }
+            }
+
+            return [selectedBooks, totalTime];
+        }
+
+        function formatTime(minutes) {
+            if (minutes < 60) {
+                return minutes + " menit";
+            } else {
+                let hours = Math.floor(minutes / 60);
+                let remainingMinutes = minutes % 60;
+                return hours + " jam " + remainingMinutes + " menit";
+            }
+        }
+
+        function executeAlgorithms() {
+            const maxTime = parseFloat(document.getElementById("maxTime").value);
+            const maxBooks = parseInt(document.getElementById("maxBooks").value);
+            const numBooks = parseInt(document.getElementById("numBooks").value);
+            const books = [];
+
+            for (let i = 0; i < numBooks; i++) {
+                const bookName = document.getElementById("bookName" + i).value;
+                const bookPages = parseInt(document.getElementById("bookPages" + i).value);
+                const bookRating = parseInt(document.getElementById("bookRating" + i).value);
+                books.push([bookName, bookPages, bookRating]);
+            }
+
+            const startBruteForce = performance.now();
+            const [bestBooksBruteForce, bruteForceTimeNeeded] = bruteForce(books, maxTime, maxBooks);
+            const endBruteForce = performance.now();
+            const bruteForceTime = (endBruteForce - startBruteForce) / 1000;
+
+            const startGreedy = performance.now();
+            const [bestBooksGreedy, greedyTimeNeeded] = greedy(books, maxTime, maxBooks);
+            const endGreedy = performance.now();
+            const greedyTime = (endGreedy - startGreedy) / 1000;
+
+            let bruteForceResults = "<h3>Menggunakan Brute Force:</h3>";
+            bestBooksBruteForce.forEach((book, i) => {
+                bruteForceResults += `${i+1}. ${book[0]} dengan durasi ${book[1] * 5} menit dan rating ${book[2]}<br>`;
+            });
+            bruteForceResults += `Total durasi waktu (Brute Force): ${formatTime(bruteForceTimeNeeded)}<br>`;
+            bruteForceResults += `Waktu eksekusi (Brute Force): ${bruteForceTime.toFixed(3)} detik<br>`;
+
+            let greedyResults = "<h3>Menggunakan Greedy:</h3>";
+            bestBooksGreedy.forEach((book, i) => {
+                greedyResults += `${i+1}. ${book[0]} dengan durasi ${book[1] * 5} menit dan rating ${book[2]}<br>`;
+            });
+            greedyResults += `Total durasi waktu (Greedy): ${formatTime(greedyTimeNeeded)}<br>`;
+            greedyResults += `Waktu eksekusi (Greedy): ${greedyTime.toFixed(3)} detik<br>`;
+
+            document.getElementById("results").innerHTML = bruteForceResults + "<br>" + greedyResults;
+        }
+
+        function generateBookInputs() {
+            const numBooks = parseInt(document.getElementById("numBooks").value);
+            let bookInputs = "";
+            for (let i = 0; i < numBooks; i++) {
+                bookInputs += `
+                    <div class="book-input">
+                        <label>Nama Buku ke-${i+1}: <input type="text" id="bookName${i}" required></label>
+                        <label>Jumlah lembar buku: <input type="number" id="bookPages${i}" min="1" required></label>
+                        <label>Rating buku (1-10): <input type="number" id="bookRating${i}" min="1" max="10" required></label>
+                    </div>`;
+            }
+            document.getElementById("bookInputs").innerHTML = bookInputs;
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Library Book Selection</h1>
+        <div>
+            <label>Jumlah waktu yang dimiliki pustakawan (dalam jam): <input type="number" id="maxTime" step="0.1" min="0.1" required></label>
+            <label>Maksimal buku yang dapat dipinjam oleh pustakawan: <input type="number" id="maxBooks" min="1" required></label>
+            <label>Jumlah buku dalam perpustakaan: <input type="number" id="numBooks" min="1" required onchange="generateBookInputs()"></label>
+        </div>
+        <div id="bookInputs"></div>
+        <button onclick="executeAlgorithms()">Jalankan Algoritma</button>
+        <div id="results" class="results"></div>
+    </div>
+</body>
+</html>
